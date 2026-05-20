@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 749ffa385efa66d40b9331aee9d749e3, type: 3}
-  m_Name: Planet Data
+  m_Name: Small Planet
   m_EditorClassIdentifier: Assembly-CSharp::PlanetData
   planetName: Planet
-  size: 5
+  size: 3
   randomSeed: 0
   useRandomTiles: 0
   checkerDarkenAmount: 0.2

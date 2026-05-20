@@ -31,6 +31,10 @@ public class CubeCameraController : MonoBehaviour
     private Vector3 rubikY = Vector3.up;
     private Vector3 rubikZ = Vector3.forward;
 
+    [Header("Planet Target")]
+    public CubePlanet cubePlanet;
+    public bool autoFindPlanetCenter = true;
+
     private struct RubikCommand
     {
         public string axis;
@@ -45,6 +49,9 @@ public class CubeCameraController : MonoBehaviour
 
     private void Start()
     {
+        if (autoFindPlanetCenter)
+            UpdateTargetFromPlanet();
+
         ApplyRubikStateInstant();
     }
 
@@ -181,21 +188,23 @@ public class CubeCameraController : MonoBehaviour
     private void SnapToRubikState(float duration)
     {
         Vector3 targetViewDir = GetRubikCameraDirection();
-        Vector3 targetPositionCamera = targetPosition + targetViewDir * distance;
         Quaternion targetRotation = GetRotationFromRubikState();
 
         if (rotationCoroutine != null)
             StopCoroutine(rotationCoroutine);
 
         rotationCoroutine = StartCoroutine(
-            AnimateCameraTo(targetPositionCamera, targetRotation, duration)
+            AnimateCameraOrbitTo(targetViewDir, targetRotation, duration)
         );
     }
 
-    private IEnumerator AnimateCameraTo(Vector3 targetPos, Quaternion targetRot, float duration)
+    private IEnumerator AnimateCameraOrbitTo(Vector3 targetViewDir, Quaternion targetRot, float duration)
     {
-        Vector3 startPos = transform.position;
-        Quaternion startRot = transform.rotation;
+        Vector3 startViewDir = GetCurrentCameraDirection();
+        Vector3 startUp = transform.up;
+        Vector3 targetUp = targetRot * Vector3.up;
+
+        targetViewDir = targetViewDir.normalized;
 
         float elapsed = 0f;
 
@@ -206,18 +215,76 @@ public class CubeCameraController : MonoBehaviour
             float t = Mathf.Clamp01(elapsed / duration);
             t = Mathf.SmoothStep(0f, 1f, t);
 
-            transform.position = Vector3.Lerp(startPos, targetPos, t);
-            transform.rotation = Quaternion.Slerp(startRot, targetRot, t);
+            Vector3 viewDir = GetSafeOrbitDirection(startViewDir, targetViewDir, t);
+
+            transform.position = targetPosition + viewDir * distance;
+
+            Vector3 up = Vector3.Slerp(startUp, targetUp, t);
+            transform.rotation = BuildCameraRotation(viewDir, up);
 
             yield return null;
         }
 
-        transform.position = targetPos;
+        transform.position = targetPosition + targetViewDir * distance;
         transform.rotation = targetRot;
 
         OnRubikRotationFinished();
     }
 
+    // para nao bugar quando o vértice oposto for exatamente oposto
+    private Vector3 GetSafeOrbitDirection(Vector3 startDir, Vector3 targetDir, float t)
+    {
+        startDir = startDir.normalized;
+        targetDir = targetDir.normalized;
+
+        float dot = Vector3.Dot(startDir, targetDir);
+
+        // Caso normal: usa Slerp
+        if (dot > -0.999f)
+        {
+            return Vector3.Slerp(startDir, targetDir, t).normalized;
+        }
+
+        // Caso especial: direções opostas.
+        // Escolhe um eixo de rotação seguro para dar a volta no planeta.
+        Vector3 axis = transform.up;
+
+        axis = axis - startDir * Vector3.Dot(axis, startDir);
+
+        if (axis.sqrMagnitude < 0.001f)
+        {
+            axis = transform.right;
+            axis = axis - startDir * Vector3.Dot(axis, startDir);
+        }
+
+        axis.Normalize();
+
+        Quaternion rotation = Quaternion.AngleAxis(180f * t, axis);
+
+        return (rotation * startDir).normalized;
+    }
+
+    // camera continua olhando para o centro do planeta
+    private Quaternion BuildCameraRotation(Vector3 viewDir, Vector3 upHint)
+    {
+        viewDir = viewDir.normalized;
+
+        // A câmera está em target + viewDir * distance,
+        // então ela precisa olhar na direção contrária.
+        Vector3 forward = -viewDir;
+
+        Vector3 up = upHint - viewDir * Vector3.Dot(upHint, viewDir);
+
+        if (up.sqrMagnitude < 0.001f)
+            up = Vector3.up - viewDir * Vector3.Dot(Vector3.up, viewDir);
+
+        if (up.sqrMagnitude < 0.001f)
+            up = Vector3.forward;
+
+        up.Normalize();
+
+        return Quaternion.LookRotation(forward, up);
+    }
     private void SyncRubikStateIfNeeded()
     {
         Vector3 expectedDir = GetRubikCameraDirection();
@@ -298,7 +365,7 @@ public class CubeCameraController : MonoBehaviour
     public void GoToOppositeVertex()
     {
         rotationQueue.Clear();
-        isRotating = false;
+        isRotating = true;
 
         rubikX = -rubikX;
         rubikY = -rubikY;
@@ -379,5 +446,19 @@ public class CubeCameraController : MonoBehaviour
     {
         targetPosition = newTarget;
         ApplyRubikStateInstant();
+    }
+
+    public void UpdateTargetFromPlanet()
+    {
+        if (cubePlanet == null)
+            cubePlanet = FindObjectOfType<CubePlanet>();
+
+        if (cubePlanet == null)
+        {
+            Debug.LogWarning("CubePlanet não encontrado. Usando targetPosition manual.");
+            return;
+        }
+
+        targetPosition = cubePlanet.GetPlanetCenterWorld();
     }
 }

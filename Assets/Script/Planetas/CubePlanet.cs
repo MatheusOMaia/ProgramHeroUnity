@@ -201,4 +201,33 @@ public class CubePlanet : MonoBehaviour
     {
         return tileObjects[c];
     }
+
+    public int GetPlanetSize()
+    {
+        if (planetData == null)
+            return 1;
+
+        return planetData.size;
+    }
+
+
+    public Vector3 GetPlanetCenterLocal()
+    {
+        if (planetData == null)
+            return Vector3.zero;
+
+        float center = (planetData.size - 1) / 2f;
+
+        return new Vector3(
+            center,
+            center,
+            center
+        );
+    }
+
+
+    public Vector3 GetPlanetCenterWorld()
+    {
+        return transform.TransformPoint(GetPlanetCenterLocal());
+    }
 }

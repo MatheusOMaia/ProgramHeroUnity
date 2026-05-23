@@ -16,7 +16,8 @@ public class CombatController : MonoBehaviour
 
     [Header("Highlights")]
     public GameObject tileHighlightPrefab;
-    public float highlightOffset = 0.08f;
+    public float highlightHeight = 0.08f;
+    public float highlightGap = 0.015f;
 
     private readonly List<GameObject> activeHighlights = new();
     private readonly Dictionary<CubeCoord, bool> highlightedTiles = new();
@@ -177,6 +178,7 @@ public class CombatController : MonoBehaviour
     public void EndCurrentTurn()
     {
         selectedAction = null;
+        ClearHighlights();
 
         currentTurnIndex++;
 
@@ -231,7 +233,7 @@ public class CombatController : MonoBehaviour
         ShowAbilityRange(action);
     }
 
-    private readonly Color moveHighlight = new Color(1f, 1f, 1f, 1f);
+    private readonly Color moveHighlight = new Color(1f, 1f, 1f, 0.5f);
     private void ShowMovementRange()
     {
         List<CubeCoord> coords = Topology.GetCoordsInRange(
@@ -251,27 +253,13 @@ public class CombatController : MonoBehaviour
         }
     }
 
-    private readonly Color emptyHighlight = new Color(1f, 0.9f, 0.1f, 1f);
-    private readonly Color enemyHighlight = new Color(1f, 0f, 0f, 1f);
+    private readonly Color emptyHighlight = new Color(1f, 0.9f, 0.1f, 0.5f);
+    private readonly Color enemyHighlight = new Color(1f, 0f, 0f, 0.5f);
     private void ShowAbilityRange(UnitAction action)
     {
         int range = action.range;
 
-        List<CubeCoord> coords = Topology.GetCoordsInRange(
-            currentUnit.currentCoord,
-            range
-        );
-
-        foreach (CubeCoord coord in coords)
-        {
-            if (coord.Equals(currentUnit.currentCoord))
-                continue;
-
-            ShowTileHighlight(
-                coord,
-                emptyHighlight
-            );
-        }
+        HashSet<CubeCoord> enemyCoords = new();
 
         foreach (Unit unit in units)
         {
@@ -290,12 +278,34 @@ public class CombatController : MonoBehaviour
             );
 
             if (distance <= range)
-            {
-                ShowTileHighlight(
-                    unit.currentCoord,
-                    enemyHighlight
-                );
-            }
+                enemyCoords.Add(unit.currentCoord);
+        }
+
+        List<CubeCoord> coords = Topology.GetCoordsInRange(
+            currentUnit.currentCoord,
+            range
+        );
+
+        foreach (CubeCoord coord in coords)
+        {
+            if (coord.Equals(currentUnit.currentCoord))
+                continue;
+
+            if (enemyCoords.Contains(coord))
+                continue;
+
+            ShowTileHighlight(
+                coord,
+                emptyHighlight
+            );
+        }
+
+        foreach (CubeCoord enemyCoord in enemyCoords)
+        {
+            ShowTileHighlight(
+                enemyCoord,
+                enemyHighlight
+            );
         }
     }
 
@@ -321,6 +331,7 @@ public class CombatController : MonoBehaviour
         );
 
         selectedAction = null;
+        ClearHighlights();
     }
 
     public void UseSelectedActionOnTile(CubeCoord coord)
@@ -442,13 +453,16 @@ public class CombatController : MonoBehaviour
             return;
         }
 
-        Vector3 normal = planet.GetFaceNormal(coord.face);
+        Vector3 position;
+        Quaternion rotation;
 
-        Vector3 position =
-            planet.GetTileWorldPosition(coord)
-            + normal * highlightOffset;
-
-        Quaternion rotation = GetHighlightRotation(coord.face);
+        planet.TryGetTileHighlightPose(
+            coord,
+            highlightHeight,
+            highlightGap,
+            out position,
+            out rotation
+        );
 
         GameObject highlightObject = Instantiate(
             tileHighlightPrefab,
@@ -459,25 +473,12 @@ public class CombatController : MonoBehaviour
         TileHighlight highlight = highlightObject.GetComponent<TileHighlight>();
 
         if (highlight != null)
-            highlight.SetColor(color);
+        {
+            highlight.Setup(color, highlightHeight);
+        }
 
         activeHighlights.Add(highlightObject);
         highlightedTiles[coord] = true;
-    }
-
-    private Quaternion GetHighlightRotation(int face)
-    {
-        Vector3 up = planet.GetFaceNormal(face);
-
-        Vector3 forward = Vector3.forward;
-
-        if (Mathf.Abs(Vector3.Dot(forward, up)) > 0.95f)
-            forward = Vector3.right;
-
-        Vector3 right = Vector3.Cross(forward, up).normalized;
-        forward = Vector3.Cross(up, right).normalized;
-
-        return Quaternion.LookRotation(forward, up);
     }
 
 }

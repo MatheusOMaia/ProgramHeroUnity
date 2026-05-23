@@ -1,50 +1,59 @@
 using UnityEngine;
 
-[RequireComponent(typeof(LineRenderer))]
 public class TileHighlight : MonoBehaviour
 {
-    public float size = 0.92f;
-    public float lineWidth = 0.04f;
-
-    private LineRenderer line;
+    private Renderer[] renderers;
 
     private void Awake()
     {
-        line = GetComponent<LineRenderer>();
-
-        line.useWorldSpace = false;
-        line.loop = true;
-        line.positionCount = 4;
-
-        line.startWidth = lineWidth;
-        line.endWidth = lineWidth;
-
-        line.numCornerVertices = 2;
-        line.numCapVertices = 2;
-
-        BuildSquare();
+        renderers = GetComponentsInChildren<Renderer>(true);
     }
 
-    private void BuildSquare()
+    public void Setup(Color color, float height)
     {
-        float h = size / 2f;
-
-        line.SetPosition(0, new Vector3(-h, 0f, -h));
-        line.SetPosition(1, new Vector3(h, 0f, -h));
-        line.SetPosition(2, new Vector3(h, 0f, h));
-        line.SetPosition(3, new Vector3(-h, 0f, h));
+        ApplyColor(color);
     }
 
-    public void SetColor(Color color)
+    private void ApplyColor(Color color)
     {
-        if (line == null)
-            line = GetComponent<LineRenderer>();
+        if (renderers == null || renderers.Length == 0)
+            renderers = GetComponentsInChildren<Renderer>(true);
 
-        line.startColor = color;
-        line.endColor = color;
+        foreach (Renderer r in renderers)
+        {
+            if (r == null)
+                continue;
 
-        Material mat = new Material(Shader.Find("Sprites/Default"));
-        mat.color = color;
-        line.material = mat;
+            Material mat = new Material(r.sharedMaterial);
+
+            mat.color = color;
+
+            if (mat.HasProperty("_Color"))
+                mat.SetColor("_Color", color);
+
+            if (mat.HasProperty("_BaseColor"))
+                mat.SetColor("_BaseColor", color);
+
+            MakeTransparent(mat);
+
+            r.material = mat;
+        }
+    }
+
+    private void MakeTransparent(Material mat)
+    {
+        if (mat == null)
+            return;
+
+        mat.SetFloat("_Mode", 3);
+        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetInt("_ZWrite", 0);
+
+        mat.DisableKeyword("_ALPHATEST_ON");
+        mat.EnableKeyword("_ALPHABLEND_ON");
+        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+
+        mat.renderQueue = 3000;
     }
 }

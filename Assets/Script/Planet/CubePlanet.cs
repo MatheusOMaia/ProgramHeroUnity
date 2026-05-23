@@ -75,9 +75,13 @@ public class CubePlanet : MonoBehaviour
             tile.transform.rotation = GetRotation(coord.face);
 
             var view = tile.GetComponent<TileView>();
+
             if (view != null)
+            {
                 view.Init(coord);
-            view.SetupVisual(isDark, planetData.checkerDarkenAmount);
+                view.SetupVisual(isDark, planetData.checkerDarkenAmount);
+            }
+            
             tileObjects[coord] = tile;
         }
     }
@@ -314,4 +318,41 @@ public class CubePlanet : MonoBehaviour
 
         return Quaternion.LookRotation(forward, up);
     }
+
+    public TileView GetTileView(CubeCoord c)
+    {
+        if (!tileObjects.ContainsKey(c))
+            return null;
+
+        return tileObjects[c].GetComponent<TileView>();
+    }
+
+    public bool TryGetTileHighlightPose(
+        CubeCoord c,
+        float highlightHeight,
+        float gap,
+        out Vector3 position,
+        out Quaternion rotation
+    )
+    {
+        TileView tileView = GetTileView(c);
+
+        if (tileView != null)
+        {
+            tileView.GetHighlightPose(
+                highlightHeight,
+                gap,
+                out position,
+                out rotation
+            );
+
+            return true;
+        }
+
+        position = GetTileWorldPosition(c) + GetFaceNormal(c.face) * (highlightHeight * 0.5f + gap);
+        rotation = GetUnitRotationForFace(c.face);
+
+        return false;
+    }
+
 }

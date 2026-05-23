@@ -1112,7 +1112,7 @@ Transform:
   m_GameObject: {fileID: 1805445979}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1919, y: 1081, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1134,8 +1134,9 @@ MonoBehaviour:
   mainCamera: {fileID: 1043753961}
   actionPanel: {fileID: 60471580}
   actionButtonPrefab: {fileID: 7423717647087214885, guid: 63ebb61b4d3a07643ad5b2b92a44fdf0, type: 3}
-  tileHighlightPrefab: {fileID: 9187369765183318789, guid: 03de08a3031bb6c4a92fddc394888ed3, type: 3}
-  highlightOffset: 0.08
+  tileHighlightPrefab: {fileID: 2296327610179007661, guid: 07e558130de2dd447b775ca2c1339682, type: 3}
+  highlightHeight: 0.08
+  highlightGap: 0.015
   currentUnit: {fileID: 0}
   selectedAction:
     actionId: 

@@ -139,7 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Unit
   unitType: base
-  portrait: {fileID: 0}
+  portrait: {fileID: 21300000, guid: 8b1b1dd4e1056174ab24c4a6f5314c42, type: 3}
   team: 0
   maxHp: 10
   hp: 10

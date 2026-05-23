@@ -22,11 +22,25 @@ public class PlanetData : ScriptableObject
     [System.Serializable]
     public class TileOverride
     {
-        public int face;
+        public CubeTopology.Face face;
         public int x;
         public int y;
         public int prefabIndex;
     }
 
     public List<TileOverride> manualOverrides;
+
+    [System.Serializable]
+    public class UnitSpawn
+    {
+        public GameObject unitPrefab;
+
+        public int face;
+        public int x;
+        public int y;
+
+        public Unit.Team team = Unit.Team.Enemy;
+    }
+    
+    public List<UnitSpawn> unitSpawns = new();
 }

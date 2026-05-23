@@ -7,11 +7,17 @@ public class CubePlanet : MonoBehaviour
 
     private CubeTopology topology;
 
+    public CubeTopology Topology => topology;
+
     private System.Random rng;
 
     private Dictionary<CubeCoord, int> overrideMap = new();
 
     private Dictionary<CubeCoord, GameObject> tileObjects = new();
+
+    private List<Unit> spawnedUnits = new();
+
+    public IReadOnlyList<Unit> SpawnedUnits => spawnedUnits;
 
     void Start()
     {
@@ -31,8 +37,14 @@ public class CubePlanet : MonoBehaviour
         topology.GenerateSurface(planetData.size);
 
         GenerateVisualPlanet();
+        SpawnUnitsFromPlanetData();
 
         Debug.Log($"Planeta gerado: {planetData.planetName}");
+    }
+
+    public Vector3 GetFaceNormal(int face)
+    {
+        return FaceNormal(face);
     }
 
     // =========================
@@ -98,7 +110,12 @@ public class CubePlanet : MonoBehaviour
 
         foreach (var o in planetData.manualOverrides)
         {
-            var coord = new CubeCoord(o.face, o.x, o.y);
+            var coord = new CubeCoord(
+                (int)o.face,
+                o.x,
+                o.y
+            );
+
             overrideMap[coord] = o.prefabIndex;
         }
     }
@@ -229,5 +246,72 @@ public class CubePlanet : MonoBehaviour
     public Vector3 GetPlanetCenterWorld()
     {
         return transform.TransformPoint(GetPlanetCenterLocal());
+    }
+
+    void SpawnUnitsFromPlanetData()
+    {
+        if (planetData.unitSpawns == null)
+            return;
+
+        foreach (PlanetData.UnitSpawn spawn in planetData.unitSpawns)
+        {
+            if (spawn.unitPrefab == null)
+                continue;
+
+            CubeCoord coord = new CubeCoord(
+                (int)spawn.face,
+                spawn.x,
+                spawn.y
+            );
+
+            Vector3 pos = GetUnitWorldPosition(coord);
+
+            GameObject unitObject = Instantiate(
+                spawn.unitPrefab,
+                pos,
+                Quaternion.identity,
+                transform
+            );
+
+            Unit unit = unitObject.GetComponent<Unit>();
+
+            if (unit == null)
+            {
+                Debug.LogError($"Prefab {spawn.unitPrefab.name} não possui componente Unit.");
+                continue;
+            }
+
+            unit.currentCoord = coord;
+            unit.team = spawn.team;
+
+            AlignUnitToFace(unit.transform, coord.face);
+
+            spawnedUnits.Add(unit);
+        }
+    }
+
+    public Vector3 GetUnitWorldPosition(CubeCoord coord)
+    {
+        return GetTileWorldPosition(coord) + FaceNormal(coord.face) * 0.6f;
+    }
+
+    public void AlignUnitToFace(Transform unitTransform, int face)
+    {
+        unitTransform.rotation = GetUnitRotationForFace(face);
+    }
+
+    public Quaternion GetUnitRotationForFace(int face)
+    {
+        Vector3 up = FaceNormal(face);
+
+        Vector3 forward = Vector3.forward;
+
+        if (Mathf.Abs(Vector3.Dot(forward, up)) > 0.95f)
+            forward = Vector3.right;
+
+        Vector3 right = Vector3.Cross(forward, up).normalized;
+        forward = Vector3.Cross(up, right).normalized;
+
+        return Quaternion.LookRotation(forward, up);
     }
 }

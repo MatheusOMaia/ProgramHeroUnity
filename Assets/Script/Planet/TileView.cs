@@ -4,6 +4,7 @@ using UnityEngine;
 public class TileView : MonoBehaviour
 {
     public CubeCoord coord;
+    public CubeCoord Coord => coord;
 
     private Renderer rend;
     private Material materialInstance;

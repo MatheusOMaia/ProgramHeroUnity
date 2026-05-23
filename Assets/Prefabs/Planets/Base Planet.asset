@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 749ffa385efa66d40b9331aee9d749e3, type: 3}
-  m_Name: Small Planet
+  m_Name: Base Planet
   m_EditorClassIdentifier: Assembly-CSharp::PlanetData
   planetName: Planet
-  size: 3
+  size: 5
   randomSeed: 0
   useRandomTiles: 0
   checkerDarkenAmount: 0.2
@@ -22,3 +22,9 @@ MonoBehaviour:
   tilePrefabs:
   - {fileID: 2296327610179007661, guid: 53a5043d40d1534408a872844908e7f9, type: 3}
   manualOverrides: []
+  unitSpawns:
+  - unitPrefab: {fileID: 0}
+    face: 0
+    x: 0
+    y: 0
+    team: 0

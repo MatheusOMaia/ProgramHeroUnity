@@ -142,49 +142,108 @@ public class CubeTopology : MonoBehaviour
     // BFS PATHFINDING
     public List<CubeCoord> ShortestPath(CubeCoord start, CubeCoord target)
     {
-        var queue = new Queue<CubeCoord>();
-        var cameFrom = new Dictionary<CubeCoord, CubeCoord?>();
+        Queue<CubeCoord> frontier = new();
+        Dictionary<CubeCoord, CubeCoord?> cameFrom = new();
 
-        queue.Enqueue(start);
+        frontier.Enqueue(start);
         cameFrom[start] = null;
 
-        while (queue.Count > 0)
+        while (frontier.Count > 0)
         {
-            var current = queue.Dequeue();
+            CubeCoord current = frontier.Dequeue();
 
             if (current.Equals(target))
                 break;
 
-            foreach (var n in tiles[current].neighbors)
+            foreach (CubeCoord next in GetNeighbors(current))
             {
-                if (!cameFrom.ContainsKey(n))
-                {
-                    cameFrom[n] = current;
-                    queue.Enqueue(n);
-                }
+                if (cameFrom.ContainsKey(next))
+                    continue;
+
+                cameFrom[next] = current;
+                frontier.Enqueue(next);
             }
         }
 
-        if (!cameFrom.ContainsKey(target))
-            return new List<CubeCoord>();
-
-        return ReconstructPath(start, target, cameFrom);
-    }
-
-    List<CubeCoord> ReconstructPath(
-        CubeCoord start,
-        CubeCoord goal,
-        Dictionary<CubeCoord, CubeCoord?> cameFrom)
-    {
         List<CubeCoord> path = new();
-        var current = goal;
 
-        while (!current.Equals(start))
+        if (!cameFrom.ContainsKey(target))
+            return path;
+
+        CubeCoord step = target;
+
+        while (!step.Equals(start))
         {
-            path.Insert(0, current);
-            current = cameFrom[current].Value;
+            path.Insert(0, step);
+            step = cameFrom[step].Value;
         }
 
         return path;
+    }
+
+    public int GetDistance(CubeCoord start, CubeCoord target)
+    {
+        if (start.Equals(target))
+            return 0;
+
+        Queue<CubeCoord> frontier = new();
+        Dictionary<CubeCoord, int> distance = new();
+
+        frontier.Enqueue(start);
+        distance[start] = 0;
+
+        while (frontier.Count > 0)
+        {
+            CubeCoord current = frontier.Dequeue();
+            int currentDistance = distance[current];
+
+            foreach (CubeCoord next in GetNeighbors(current))
+            {
+                if (distance.ContainsKey(next))
+                    continue;
+
+                distance[next] = currentDistance + 1;
+
+                if (next.Equals(target))
+                    return distance[next];
+
+                frontier.Enqueue(next);
+            }
+        }
+
+        return 999999;
+    }
+
+    public List<CubeCoord> GetCoordsInRange(CubeCoord start, int maxDistance)
+    {
+        List<CubeCoord> result = new();
+
+        Queue<CubeCoord> frontier = new();
+        Dictionary<CubeCoord, int> distances = new();
+
+        frontier.Enqueue(start);
+        distances[start] = 0;
+
+        while (frontier.Count > 0)
+        {
+            CubeCoord current = frontier.Dequeue();
+            int currentDistance = distances[current];
+
+            result.Add(current);
+
+            if (currentDistance >= maxDistance)
+                continue;
+
+            foreach (CubeCoord next in GetNeighbors(current))
+            {
+                if (distances.ContainsKey(next))
+                    continue;
+
+                distances[next] = currentDistance + 1;
+                frontier.Enqueue(next);
+            }
+        }
+
+        return result;
     }
 }

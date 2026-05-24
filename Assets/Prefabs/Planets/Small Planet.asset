@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlanetData
   planetName: Planet
   size: 3
-  randomSeed: 0
-  useRandomTiles: 0
+  randomSeed: 123
+  useRandomTiles: 1
   checkerDarkenAmount: 0.2
   heightVariation: 0.08
   heightSeed: 12345
   tilePrefabs:
   - {fileID: 2296327610179007661, guid: 53a5043d40d1534408a872844908e7f9, type: 3}
+  - {fileID: 2296327610179007661, guid: f19af36ec7d231544b644014174f8063, type: 3}
   manualOverrides: []
   unitSpawns:
   - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}

@@ -14,6 +14,16 @@ public class CombatController : MonoBehaviour
     public Transform actionPanel;
     public GameObject actionButtonPrefab;
 
+    [Header("Current Unit UI")]
+    public CurrentUnitPanelUI currentUnitPanel;
+
+    [Header("Turn Indicator")]
+    public GameObject turnIndicatorPrefab;
+    private TurnIndicatorWorld turnIndicator;
+
+    [Header("Turn Order UI")]
+    public TurnOrderUI turnOrderUI;
+
     [Header("Highlights")]
     public GameObject tileHighlightPrefab;
     public float highlightHeight = 0.08f;
@@ -67,6 +77,7 @@ public class CombatController : MonoBehaviour
 
         CollectUnits();
         BuildTurnQueue();
+        CreateTurnIndicator();
         StartCurrentTurn();
 
         combatReady = true;
@@ -156,6 +167,7 @@ public class CombatController : MonoBehaviour
         {
             currentUnit = null;
             ClearActionButtons();
+            UpdateTurnUI();
             return;
         }
 
@@ -173,6 +185,7 @@ public class CombatController : MonoBehaviour
         Debug.Log($"Rodada {roundNumber} | Turno de: {currentUnit.name}");
 
         BuildActionButtons(currentUnit);
+        UpdateTurnUI();
     }
 
     public void EndCurrentTurn()
@@ -423,14 +436,24 @@ public class CombatController : MonoBehaviour
         units.Remove(unit);
         turnQueue.RemoveAll(u => u == unit || u == null);
 
-        if (currentUnit == unit)
+        if (turnQueue.Count == 0)
         {
-            EndCurrentTurn();
+            currentUnit = null;
+            UpdateTurnUI();
+            ClearActionButtons();
             return;
         }
 
         if (currentTurnIndex >= turnQueue.Count)
             currentTurnIndex = 0;
+
+        if (currentUnit == unit)
+        {
+            StartCurrentTurn();
+            return;
+        }
+
+        UpdateTurnUI();
     }
 
     private void ClearHighlights()
@@ -479,6 +502,54 @@ public class CombatController : MonoBehaviour
 
         activeHighlights.Add(highlightObject);
         highlightedTiles[coord] = true;
+    }
+
+    private void CreateTurnIndicator()
+    {
+        if (turnIndicatorPrefab == null)
+            return;
+
+        GameObject obj = Instantiate(turnIndicatorPrefab);
+
+        turnIndicator = obj.GetComponent<TurnIndicatorWorld>();
+
+        if (turnIndicator == null)
+        {
+            Debug.LogError("TurnIndicatorPrefab precisa ter TurnIndicatorWorld.");
+            return;
+        }
+
+        turnIndicator.Setup(planet, mainCamera);
+    }
+
+    private void UpdateTurnUI()
+    {
+        if (currentUnitPanel != null)
+            currentUnitPanel.ShowUnit(currentUnit);
+
+        if (turnIndicator != null)
+            turnIndicator.SetTarget(currentUnit);
+
+        if (turnOrderUI != null)
+            turnOrderUI.ShowTurnOrder(
+                GetRemainingTurnOrder(),
+                currentUnit
+            );
+    }
+
+    private List<Unit> GetRemainingTurnOrder()
+    {
+        List<Unit> order = new();
+
+        foreach (Unit unit in turnQueue)
+        {
+            if (unit == null)
+                continue;
+
+            order.Add(unit);
+        }
+
+        return order;
     }
 
 }

@@ -14,17 +14,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlanetData
   planetName: Planet
   size: 5
-  randomSeed: 0
-  useRandomTiles: 0
+  randomSeed: 123
+  useRandomTiles: 1
   checkerDarkenAmount: 0.2
   heightVariation: 0.08
   heightSeed: 12345
   tilePrefabs:
   - {fileID: 2296327610179007661, guid: 53a5043d40d1534408a872844908e7f9, type: 3}
+  - {fileID: 2296327610179007661, guid: f19af36ec7d231544b644014174f8063, type: 3}
   manualOverrides: []
   unitSpawns:
-  - unitPrefab: {fileID: 0}
+  - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}
     face: 0
     x: 0
     y: 0
+    team: 0
+  - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}
+    face: 5
+    x: 4
+    y: 4
+    team: 0
+  - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}
+    face: 1
+    x: 2
+    y: 2
+    team: 0
+  - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}
+    face: 2
+    x: 4
+    y: 4
+    team: 0
+  - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}
+    face: 3
+    x: 4
+    y: 0
+    team: 0
+  - unitPrefab: {fileID: 3496137709401837114, guid: ab35004f04882d94cbe7c5db43b69198, type: 3}
+    face: 4
+    x: 2
+    y: 1
     team: 0

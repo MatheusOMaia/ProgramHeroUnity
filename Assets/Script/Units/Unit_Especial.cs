@@ -1,7 +1,11 @@
 using UnityEngine;
 
-public class OctopusUnit : Unit
+public class Unit_Especial : Unit
 {
+
+    // UM SCRIPT ÚNICO USADO EM UNIDADES ESPECIAIS, atualmente sem utilidade
+    // o polvo tem nada de especial por exemplo, então usa o script Unit básico
+    
     public override void Awake()
     {
         base.Awake();

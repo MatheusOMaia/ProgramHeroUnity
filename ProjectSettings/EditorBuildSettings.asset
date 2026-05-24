@@ -5,9 +5,21 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/Menus/MainMenu.unity
+    guid: 24843e668f4031a4295956d88a0db3fb
+  - enabled: 1
+    path: Assets/Scenes/Expedition/Expedition.unity
+    guid: 9cc7ffb912065f84dbb8a170a1fbbf77
+  - enabled: 1
+    path: Assets/Scenes/Battles/Battle_Base.unity
+    guid: 51d69dbd2cf01e044940629373f30961
+  - enabled: 1
+    path: Assets/Scenes/Battles/Battle_Small.unity
+    guid: 92b8f4e2e4df7534b8391424b0f8c27c
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
